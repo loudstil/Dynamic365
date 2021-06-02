@@ -1,0 +1,18 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- task: PowerAppsToolInstaller@0
+- task: PowerAppsPackSolution@0
+  inputs:
+    SolutionSourceFolder: 'contents'
+    SolutionOutputFile: 'packed-solution/contoso_university_core.zip'
+    SolutionType: 'Both'
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: 'packed-solution'
+    artifact: 'packed-solution'
+    publishLocation: 'pipeline'

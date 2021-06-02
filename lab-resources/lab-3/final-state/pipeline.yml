@@ -1,0 +1,38 @@
+trigger:
+- master
+
+
+jobs:
+- job: Pack
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - task: PowerAppsToolInstaller@0
+  - task: PowerAppsPackSolution@0
+    inputs:
+      SolutionSourceFolder: 'contents'
+      SolutionOutputFile: 'packed-solution/contoso_university_core.zip'
+      SolutionType: 'Both'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: 'packed-solution'
+      artifact: 'packed-solution'
+      publishLocation: 'pipeline'
+- deployment: Deploy
+  dependsOn: 'Pack'
+  condition: succeeded('Pack')
+  pool:
+    vmImage: 'windows-latest'
+  environment: 'production'
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - task: PowerAppsToolInstaller@0
+        - task: PowerAppsImportSolution@0
+          inputs:
+            PowerAppsEnvironment: 'production'
+            SolutionInputFile: '$(Pipeline.Workspace)/packed-solution/contoso_university_core_managed.zip'
+        - task: PowerAppsPublishCustomizations@0
+          inputs:
+            PowerAppsEnvironment: 'production'
